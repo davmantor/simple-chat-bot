@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+
+    <!-- Style the chat messages and layout -->
+    <style>
+        /* Common style for all chat messages */
+        .chat-msg {
+            margin: 5px 0;
+            padding: 6px 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            clear: both;
+        }
+
+        /* Style for messages from the user (on the left) */
+        .user {
+            background-color: #e0f7fa;
+            text-align: left;
+            float: left;
+        }
+
+        /* Style for messages from the bot (on the right) */
+        .bot {
+            background-color: #e8f5e9;
+            text-align: right;
+            float: right;
+        }
+
+        /* Chatbox container */
+        #chatbox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 400px;
+            height: 300px;
+            overflow-y: auto; /* adds scroll if messages go past height */
+        }
+
+        /* Helper to clear floating elements */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Chat</h2>
+
+    <!-- Box that shows the conversation -->
+    <div id="chatbox"></div>
+
+    <!-- Text input for user message -->
+    <input type="text" id="messageInput" placeholder="Type a message..." style="width:300px;">
+
+    <!-- Button that sends the message -->
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+    // Store the full conversation history here
+    const history = [];
+
+    // This function runs when the user clicks "Send"
+    async function sendMessage() {
+        const input = document.getElementById("messageInput");  // get input field
+        const chatbox = document.getElementById("chatbox");     // get chat display area
+        const message = input.value.trim();                     // get text and remove extra spaces
+        if (!message) return;                                   // do nothing if input is empty
+
+        // Show the user's message in the chatbox (on the left)
+        chatbox.innerHTML += `<div class="chat-msg user clearfix"><b>You:</b> ${message}</div>`;
+        input.value = "";  // clear the input box
+
+        // Add the message to conversation history
+        history.push({ role: "user", content: message });
+
+        // Send the full conversation to the server (/chat endpoint)
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ history })
+        });
+
+        // Wait for the bot's reply
+        const data = await res.json();
+
+        // Show the bot's reply in the chatbox (on the right)
+        chatbox.innerHTML += `<div class="chat-msg bot clearfix"><b>Bot:</b> ${data.reply}</div>`;
+
+        // Add the bot reply to conversation history
+        history.push({ role: "assistant", content: data.reply });
+
+        // Scroll to the bottom so new message is always visible
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    </script>
+</body>
+</html>
