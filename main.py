@@ -50,9 +50,12 @@ async def chat(payload: ChatRequest):
         "anthropic-version": "2023-06-01"
     }
 
+    system_prompt = "Reply back to the user like a pirate."
+
     payload_data = {
         "model": MODEL_NAME,
         "max_tokens": 300,
+        "system": system_prompt,
         "messages": [m.dict() for m in payload.history]
     }
 
